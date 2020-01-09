@@ -213,6 +213,7 @@ const executeThread = (threadFunction, resolve, reject) => {
 /**
  * Defaine the manager used to run and handle all the threads.
  * @type {ThreadManafer}
+ * @class
  */
 class ThreadManager {
 
