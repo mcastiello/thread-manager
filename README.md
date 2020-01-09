@@ -16,11 +16,11 @@ const myAnnoyingFunction = function() {
     setInterval(() => console.log("I'm an annoying log!"), 100);
 };
 
-const myAnnoyingThread = threads.run(myAnnoyingFunction);
+threads.run(myAnnoyingFunction);
 ```
 The above example define a simple callback which is then passed to the `run` method of the thread manager.
 
-Internally that callback will be converted in an external javascript execution thread and, well, will annoy the hell out of you until you call `myAnnoyingThread.terminate();`.
+Internally that callback will be converted in an external javascript execution thread and, well, will annoy the hell out of you until you call `threads.running[0].terminate();`.
 
 ### Writing a thread callback
 Thread callbacks are executed on a completely different scope, so, if you define or import things outside the callback, they won't be available inside it. Also, workes don't have access to the DOM and to the `window` object, so, don't even try to use it.
