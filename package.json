@@ -1,0 +1,24 @@
+{
+  "name": "thread-manager-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/thread-manager.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcastiello/thread-manager-service.git"
+  },
+  "keywords": [],
+  "author": "Marco Castiello",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mcastiello/thread-manager-service/issues"
+  },
+  "homepage": "https://github.com/mcastiello/thread-manager-service#readme",
+  "devDependencies": {
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
