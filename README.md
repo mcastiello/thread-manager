@@ -2,6 +2,8 @@
 
 As you know for sure, JS is a single thread language. In recent years, the introduction of Workers made that assumption not completely true. With a little bit of limitations, we are now able to execute some code in a parallel thread.
 
+The library can be installed using `npm install thread-manager-service`.
+
 The purpose of this library is to make the creation of workers slightly easier and to allow them to communicate with each other.
 
 You won't need to create external files to define a worker, you can compile all the code inside the same file.
