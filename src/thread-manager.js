@@ -11,7 +11,7 @@ import WebThread from "./web-thread";
  * Maximum number of threads that can run at the same time.
  * @type {Number}
  */
-let threadLimit = 8;
+let threadLimit = 4;
 
 /**
  * Data object shared among the running threads.
@@ -234,6 +234,14 @@ class ThreadManager {
     }
 
     /**
+     * Get the count of queued threads.
+     * @returns {Number}
+     */
+    get queue() {
+        return threadQueue.length;
+    }
+
+    /**
      * Get a list of running threads.
      * @returns {Array}
      */
@@ -261,6 +269,7 @@ class ThreadManager {
         
         if (!isNaN(value) && value >= 1) {
             threadLimit = Math.round(value);
+            updateThreadQueue();
         }
     }
 
