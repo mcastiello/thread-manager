@@ -162,6 +162,6 @@ You will also have access to the currently running threads accessing the propert
 ### Kill'em all
 We've already seen how to use the `exit` function to stop the thread execution from the inside, but the `WebThread` class extends `Worker`, which means that you can also kill a thread using `wt.terminate();`.
 
-If you are shutting down your application, you may want to kill all the threads at the same time, in order to do this. you can the manager method `thread.purge()` this will clean the queue and than go through all the running threads and call the `terminate` method.
+If you are shutting down your application, you may want to kill all the threads at the same time, in order to do this. you can the manager method `threads.purge()` this will clean the queue and than go through all the running threads and call the `terminate` method.
 
 Each of the threads will trigger the `terminate` event just before shutting down. You can use the event to read the result or make one last check to the shared memory to see what the thread has stored there for you as a partying gift.
