@@ -118,7 +118,7 @@ const threadTerminated = thread => {
  * @private
  */
 const updateThreadQueue = () => {
-    if (threadQueue.length > 0 && threadRunning.length < threadLimit) {
+    while (threadQueue.length > 0 && threadRunning.length < threadLimit) {
         const params = threadQueue.shift();
         
         executeThread(...params);
