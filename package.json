@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/mcastiello/thread-manager.git"
   },
-  "keywords": [],
+  "keywords": ["Thread", "Worker", "Service", "Parallel", "Shared Memory"],
   "author": "Marco Castiello",
   "license": "ISC",
   "bugs": {
