@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcastiello/thread-manager-service.git"
+    "url": "git+https://github.com/mcastiello/thread-manager.git"
   },
   "keywords": [],
   "author": "Marco Castiello",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mcastiello/thread-manager-service/issues"
+    "url": "https://github.com/mcastiello/thread-manager/issues"
   },
-  "homepage": "https://github.com/mcastiello/thread-manager-service#readme",
+  "homepage": "https://github.com/mcastiello/thread-manager#readme",
   "devDependencies": {
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
