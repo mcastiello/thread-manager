@@ -378,8 +378,4 @@ class ThreadManager {
     }
 }
 
-const manager =  new ThreadManager();
-
-window.Threads = manager;
-
-export default manager;
+export default new ThreadManager();
