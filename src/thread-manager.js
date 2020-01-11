@@ -46,6 +46,35 @@ const threadRunning = [];
 const threadMap = new WeakMap();
 
 /**
+ * List of tokens used to generate a Unique ID
+ * @type {ArrayBuffer}
+ * @private
+ */
+const lut = new ArrayBuffer(256);
+
+// Initialise all the index tokens.
+for (let i=0; i<256; i++) {
+    lut[i] = (i<16 ? '0' : '' ) + (i).toString(16).toUpperCase();
+}
+
+
+/**
+ * Generate a UUID.
+ * @returns {String}
+ * @private
+ */
+const generateUUID = () => {
+    const d0 = Math.random()*0xffffffff|0;
+    const d1 = Math.random()*0xffffffff|0;
+    const d2 = Math.random()*0xffffffff|0;
+    const d3 = Math.random()*0xffffffff|0;
+    return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+'-'+
+        lut[d1&0xff]+lut[d1>>8&0xff]+'-'+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+'-'+
+        lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+'-'+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
+        lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
+};
+
+/**
  * This method is actually prepended to any callback before being executed as a web thread.
  * Its purpose is to add a shared memory area that the thread can access.
  * This "shared" memory will be accessible both from the manager and from all the running threads.
@@ -224,7 +253,7 @@ const createThread = threadFunction => {
     
     if (url) {
         try {
-            const thread = new WebThread(url);
+            const thread = new WebThread(url, generateUUID());
 
             // Listen for the termination event.
             thread.addEventListener("terminate", () => threadTerminated(thread));
@@ -375,6 +404,14 @@ class ThreadManager {
         for (let thread of threads) {
             thread.terminate();
         }
+    }
+
+    /**
+     * Expose the method to generate the UUID.
+     * @returns {String}
+     */
+    generateUUID() {
+        return generateUUID();
     }
 }
 
