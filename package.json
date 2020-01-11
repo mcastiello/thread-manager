@@ -10,8 +10,13 @@
     "type": "git",
     "url": "git+https://github.com/mcastiello/thread-manager.git"
   },
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
-  "keywords": ["Thread", "Worker", "Service", "Parallel", "Shared Memory"],
+  "keywords": [
+    "Thread",
+    "Worker",
+    "Service",
+    "Parallel",
+    "Shared Memory"
+  ],
   "author": "Marco Castiello",
   "license": "ISC",
   "bugs": {

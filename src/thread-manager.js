@@ -47,7 +47,7 @@ const threadMap = new WeakMap();
 
 /**
  * This method is actually prepended to any callback before being executed as a web thread.
- * Its purpouse is to add a shared memory area that the thread can access.
+ * Its purpose is to add a shared memory area that the thread can access.
  * This "shared" memory will be accessible both from the manager and from all the running threads.
  * @private
  */
@@ -55,7 +55,7 @@ const createSharedMemory = function() {
     let data = {};
     
     self.shared = new Proxy(data, {
-        set: (ref, prop, val) {
+        set: (ref, prop, val) => {
             ref[prop] = val;
             
             self.postMessage({
@@ -67,17 +67,76 @@ const createSharedMemory = function() {
             return true;
         }
     });
+
+    self.threadId = null;
     
     self.addEventListener("message", event => {
         if (event.data && event.data.type && event.data.type === "shared-memory-update") {
             data[event.data.property] = event.data.value;
             event.stopImmediatePropagation();
         }
+        if (event.data && event.data.type && event.data.type === "shared-memory-id") {
+            self.threadId = event.data.value;
+            event.stopImmediatePropagation();
+        }
         if (event.data && event.data.type && event.data.type === "shared-memory-init") {
             Object.assign(data, event.data.value);
             event.stopImmediatePropagation();
+            start();
         }
     });
+};
+
+/**
+ * Generate the exit function for the thread. The thread will be immediately terminated and the passed value will be
+ * returned to the main thread.
+ * If the value passed (or one of the properties of it) is an object that implements the Transferable interface,
+ * the value will transferred completely to the main thread instead of neing converted into a standard object (which,
+ * of course, make the transfer much quicker).
+ * @param {*} value
+ */
+const exitFunction = value => {
+    const params = [{
+        type:'thread-terminate',
+        value: value
+    }];
+    const transferable = [];
+    const supportedTransferable = [
+        "ArrayBuffer",
+        "MessagePort",
+        "ImageBitmap",
+        "OffscreenCanvas"
+    ];
+    const isTransferable = obj => {
+        let result = Boolean(obj);
+        for (let cls of supportedTransferable) {
+            if (result) {
+                const ref = self[cls];
+                if (ref) {
+                    result = result && obj instanceof ref;
+                }
+            } else {
+                break;
+            }
+        }
+    };
+    const checkForTransferable = obj => {
+        if (isTransferable(obj)) {
+            transferable.push(obj);
+        } else if (obj && typeof obj === "object") {
+            for (let i in obj) {
+                const ref = obj[i];
+                checkForTransferable(ref);
+            }
+        }
+    };
+
+    checkForTransferable(value);
+
+    if (transferable.length > 0) {
+        params.push(transferable);
+    }
+    self.postMessage(...params);
 };
 
 /**
@@ -143,8 +202,8 @@ const loadThreadUrl = threadFunction => {
             url = threadMap.get(threadFunction);
         } else {
             const shared = "(" + createSharedMemory.toString() + ")();";
-            const stop = "self.stop=d=>postMessage({type:'thread-terminate',value:d);";
-            const func = "(" + threadFunction.toString() + ")();";
+            const stop = "self.exit=d=>{(" + exitFunction.toString() + ")(d)};";
+            const func = "let start=()=>{(" + threadFunction.toString() + ")();start=undefined};";
             const blob = new Blob([shared+stop+func]);
 
             url = URL.createObjectURL(blob);
@@ -168,7 +227,7 @@ const createThread = threadFunction => {
             const thread = new WebThread(url);
 
             // Listen for the termination event.
-            thread.addEventListener("terminate", event => threadTerminated(thread));
+            thread.addEventListener("terminate", () => threadTerminated(thread));
             
             // Listen for any memory updates.
             thread.addEventListener("message", event => {
@@ -212,7 +271,7 @@ const executeThread = (threadFunction, resolve, reject) => {
 
 /**
  * Defaine the manager used to run and handle all the threads.
- * @type {ThreadManafer}
+ * @type {ThreadManager}
  * @class
  */
 class ThreadManager {
@@ -309,11 +368,18 @@ class ThreadManager {
      * Kill all the running threads.
      */
     purge() {
-        threadQueue = [];
-        for (let thread of threadRunning) {
+        const threads = threadRunning.slice();
+
+        threadQueue.length = 0;
+
+        for (let thread of threads) {
             thread.terminate();
         }
     }
 }
 
-export default new ThreadManager();
+const manager =  new ThreadManager();
+
+window.Threads = manager;
+
+export default manager;

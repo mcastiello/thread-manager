@@ -10,13 +10,13 @@ You won't need to create external files to define a worker, you can compile all 
 
 Let's start with a little example:
 ```javascript
-import threads from 'thread-manager-service';
+import Threads from 'thread-manager-service';
 
 const myAnnoyingFunction = function() {
     setInterval(() => console.log("I'm an annoying log!"), 100);
 };
 
-threads.run(myAnnoyingFunction);
+Threads.run(myAnnoyingFunction);
 ```
 The above example define a simple callback which is then passed to the `run` method of the thread manager.
 
@@ -27,11 +27,9 @@ Thread callbacks are executed on a completely different scope, so, if you define
 
 A good way to write a thread callback is to create a module that export just one function.
 ```javascript
-// parallel-pow-2.js
+// parallel-random.js
 export default () => {
-    let val = shared.value || 1;
-    
-    shared.value *= 2;
+    shared[threadId] = Math.round(Math.random() * 100);
     
     exit();
 };
@@ -39,22 +37,32 @@ export default () => {
 And then import it and use it.
 ```javascript
 // main.js
-import Pow2 from './parallel-pow-2';
-import threads from 'thread-manager-service';
+import RandomNumber from './parallel-random';
+import Threads from 'thread-manager-service';
 
-function powerOfTwo(pow) {
+function getRandomNumbers(count) {
     const promises = [];
     
-    for (let i = 0; i<pow; i++) {
-        promises.push(threads.execute(Pow2));
+    for (let i = 0; i<count; i++) {
+        promises.push(Threads.execute(RandomNumber));
     }
     
-    Promise.all(primises).then(() => console.log(threads.shared.value));
+    Promise.all(promises).then(() => console.log(Object.values(Threads.shared)));
 }
 
-powerOfTwo(5); // 32
+getRandomNumbers(6); // [45, 9, 1, 87, 58, 96]
 ```
-Now, this is a very overcomplicated way to calculate a power of 2, but it helps to show a few new elements that we are going to describe now.
+Now, this is a very overcomplicated way to get 6 random numbers, but it helps to show a few new elements that we are going to describe now.
+### Thread ID
+Each thread has a UUID assigned to it, so you can use it to communicate with the other threads. Basically it's like a signature.
+Inside the thread you can read it just using the variable `threadId`, while form the manager you can use one of the followings>
+```javascript
+Threads.run(MyProcess).then(thread => console.log(thread.id)); // "8301E902-5FE7-4EA1-AFBE-D6B410A2691D"
+
+// or
+
+console.log(Threads.running[0].id); // "8301E902-5FE7-4EA1-AFBE-D6B410A2691D"
+```
 ### Shared memory
 The first thing that the library add to your thread code is the ability to use a shared memory. The `shared` object is a proxy element that, every time you will update one of its properties, all the other running threads and the main thread manager will have access to that property.
 
@@ -88,12 +96,12 @@ export default () => {
 }
 
 // Main thread
-import threads from 'thread-manager-service';
+import Threads from 'thread-manager-service';
 
-console.log(threads.shared); // { num: 5, arr: [1, 2, 3, 4] }
+console.log(Threads.shared); // { num: 5, arr: [1, 2, 3, 4] }
 ```
 ### Exiting a thread
-When you wark with worker, you know that you cannot kill one from the "inside", you need to dispatch a message that is then received by the main thread that then calls `worker.terminate()`... Too much code for me.
+When you work with workers, you know that you cannot kill one from the "inside", you need to dispatch a message that is then received by the main thread that then calls `worker.terminate()`... Too much code for me.
 
 You can now call the `exit()` function that will terminate the thread and return control to the main thread. The function will also accept a parameter that will be returned to the main thread.
 
@@ -105,21 +113,22 @@ export default () => {
 }
 
 // Main thread
-import threads from 'thread-manager-service';
+import Threads from 'thread-manager-service';
 import simple from './simple';
 
 async function example() {
-    const t1 = await threads.run(simple);
+    const t1 = await Threads.run(simple);
     simple.addEventListener("terminate", event => console.log(event.data));
     
     // or
     
-    const value = await threads.execute(simple);
+    const value = await Threads.execute(simple);
     console.log(value);
 }
 
 example();
 ```
+If the value passed to the `exit` function or any of the properties of such value implement the `Transferable` interface (`ArrayBuffer`, `MessagePort`, `ImageBitmap` and `OffscreenCanvas`) they will completely transferred to the Main thread as they are. Other type of data will be transferred as a copy and complex instances will be converted into a standard `Object`.
 ### Difference between `run` and `execute`
 As you've seen, there are two methods that you can use to execute a thread, they both returns a promise, but they are resolved at different stages of the thread execution.
 
@@ -136,9 +145,9 @@ The library is set by default to run a maximum of `4` threads at the same time. 
 
 The maximum number of thread can be changed to adapt to your needs (as long as you use a positive integer bigger than `0`). Be aware that if you try to reduce the number of concurrent threads, this won't kill the process in excess, the library will wait until the number of running processes will go below the set value before starting a new one from the queue. On the other side, if you increase the number of threads and there are some stored in the queue, those will be executed immediatly.
 ```javascript
-import threads from 'thread-manager-service';
+import Threads from 'thread-manager-service';
 
-console.log(threads.limit); // 4
+console.log(Threads.limit); // 4
 
 const myProcess = () => {
     console.log("I'm a process!");
@@ -146,16 +155,16 @@ const myProcess = () => {
 };
 
 for (let i=0; i<8; i++) {
-    threads.run(myProcess);
+    Threads.run(myProcess);
 }
 
-console.log(threads.count); // 4
-console.log(threads.queue); // 4
+console.log(Threads.count); // 4
+console.log(Threads.queue); // 4
 
-threads.limit = 6;
+Threads.limit = 6;
 
-console.log(threads.count); // 6
-console.log(threads.queue); // 2
+console.log(Threads.count); // 6
+console.log(Threads.queue); // 2
 ```
 You will also have access to the currently running threads accessing the property `threads.running` which contains an array of all the `WebThread` instances created.
 
