@@ -82,8 +82,7 @@ const generateUUID = () => {
  */
 const createSharedMemory = function() {
     let data = {};
-    
-    self.shared = new Proxy(data, {
+    const proxy = new Proxy(data, {
         set: (ref, prop, val) => {
             ref[prop] = val;
             
@@ -97,7 +96,10 @@ const createSharedMemory = function() {
         }
     });
 
-    self.threadId = null;
+    Object.defineProperty(self, "shared", {
+        "enumerable": false,
+        "get": () => proxy
+    });
     
     self.addEventListener("message", event => {
         if (event.data && event.data.type && event.data.type === "shared-memory-update") {
@@ -105,7 +107,11 @@ const createSharedMemory = function() {
             event.stopImmediatePropagation();
         }
         if (event.data && event.data.type && event.data.type === "shared-memory-id") {
-            self.threadId = event.data.value;
+            Object.defineProperty(self, "threadId", {
+                "value": event.data.value,
+                "enumerable": false,
+                "writable": false
+            });
             event.stopImmediatePropagation();
         }
         if (event.data && event.data.type && event.data.type === "shared-memory-init") {

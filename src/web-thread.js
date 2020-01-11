@@ -20,20 +20,28 @@ class WebThread extends Worker {
      */
     constructor(url, id) {
         super(url);
+        let result = null;
 
-        this.id = id;
-        this.result = null;
+        Object.defineProperty(this, "id", {
+            "value": id,
+            "enumerable": true,
+            "writable": false
+        });
+        Object.defineProperty(this, "result", {
+            "enumerable": true,
+            "get": () => result
+        });
 
         this.postMessage({
             type: "shared-memory-id",
-            value: this.id
+            value: id
         });
         
         this.addEventListener("message", event => {
             if (event && event.data && event.data.type === "thread-terminate") {
                 event.stopImmediatePropagation();
                 
-                this.result = event.data.value;
+                result = event.data.value;
                 
                 this.terminate();
             }
