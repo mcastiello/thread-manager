@@ -7,3 +7,5 @@
 import threadManager from './thread-manager.js';
 
 self.Threads = threadManager;
+
+export default threadManager;
