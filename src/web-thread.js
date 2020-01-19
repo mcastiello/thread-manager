@@ -5,6 +5,8 @@
  * Project: ThreadManagerService.js
  */
 
+import 'worker-async-polyfill';
+
 /**
  * Define an instance of a web thread.
  * @type {WebThread}

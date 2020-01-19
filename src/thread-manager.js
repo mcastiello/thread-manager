@@ -24,7 +24,10 @@ const sharedMemory = {};
  * @type {Proxy}
  */
 const sharedMemoryProxy = new Proxy(sharedMemory, {
-    set: (ref, prop, val) => updateSharedMemory(prop, val)
+    set: (ref, prop, val) => {
+        updateSharedMemory(prop, val);
+        return true;
+    }
 });
 
 /**
@@ -100,7 +103,8 @@ const createSharedMemory = function() {
         "enumerable": false,
         "get": () => proxy
     });
-    
+    shared = self.shared;
+
     self.addEventListener("message", event => {
         if (event.data && event.data.type && event.data.type === "shared-memory-update") {
             data[event.data.property] = event.data.value;
@@ -112,6 +116,7 @@ const createSharedMemory = function() {
                 "enumerable": false,
                 "writable": false
             });
+            threadId = self.threadId;
             event.stopImmediatePropagation();
         }
         if (event.data && event.data.type && event.data.type === "shared-memory-init") {
@@ -143,17 +148,16 @@ const exitFunction = value => {
         "OffscreenCanvas"
     ];
     const isTransferable = obj => {
-        let result = Boolean(obj);
-        for (let cls of supportedTransferable) {
-            if (result) {
+        let result = false;
+        if (obj) {
+            for (let cls of supportedTransferable) {
                 const ref = self[cls];
                 if (ref) {
-                    result = result && obj instanceof ref;
+                    result = result || obj instanceof ref;
                 }
-            } else {
-                break;
             }
         }
+        return result;
     };
     const checkForTransferable = obj => {
         if (isTransferable(obj)) {
@@ -236,8 +240,8 @@ const loadThreadUrl = threadFunction => {
         if (threadMap.has(threadFunction)) {
             url = threadMap.get(threadFunction);
         } else {
-            const shared = "(" + createSharedMemory.toString() + ")();";
-            const stop = "self.exit=d=>{(" + exitFunction.toString() + ")(d)};";
+            const shared = "let threadId=null,shared=null;(" + createSharedMemory.toString() + ")();";
+            const stop = "let exit=self.exit=d=>{(" + exitFunction.toString() + ")(d)};";
             const func = "let start=()=>{(" + threadFunction.toString() + ")();start=undefined};";
             const blob = new Blob([shared+stop+func]);
 
@@ -392,11 +396,10 @@ class ThreadManager {
      */
     async execute(threadFunction) {
         const thread = await this.run(threadFunction);
-        const result = await new Promise(resolve => {
+        
+        return await new Promise(resolve => {
             thread.addEventListener("terminate", event => resolve(event.result));
         });
-        
-        return result;
     }
     
     /**

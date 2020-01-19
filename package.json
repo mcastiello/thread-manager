@@ -1,8 +1,8 @@
 {
   "name": "thread-manager-service",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
-  "main": "src/thread-manager.js",
+  "main": "dist/thread-manager-service.js",
   "scripts": {
     "build": "webpack"
   },
@@ -24,7 +24,12 @@
   },
   "homepage": "https://github.com/mcastiello/thread-manager#readme",
   "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.8.3",
+    "jest": "^24.9.0",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
+  },
+  "dependencies": {
+    "worker-async-polyfill": "^1.0.8"
   }
 }
