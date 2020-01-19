@@ -8,7 +8,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/thread-manager.js',
+    entry: './src/index.js',
     output: {
         filename: 'thread-manager-service.js',
         path: path.resolve(__dirname, 'dist'),

@@ -1,8 +1,8 @@
 {
   "name": "thread-manager-service",
-  "version": "1.0.4",
-  "description": "",
-  "main": "dist/thread-manager-service.js",
+  "version": "1.0.5",
+  "description": "Yet another way to fake threads in JS, of course using Web Workers",
+  "main": "src/thread-manager.js",
   "scripts": {
     "build": "webpack"
   },

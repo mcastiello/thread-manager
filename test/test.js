@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020
+ * Author: Marco Castiello
+ * E-mail: marco.castiello@gmail.com
+ * Project: ThreadManagerService.js
+ */
 
 // Mocking the Blob class to make sure that the text method exists.
 class MockBlob extends Blob {
